@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VR Speed Reader</title>
+  <style>
+    /* General styles */
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+      background-color: #000; /* Black background */
+      color: #fff; /* White text */
+    }
+
+    /* Container for screens */
+    #container {
+      display: flex;
+      flex: 1;
+      width: 100%;
+      position: relative;
+    }
+
+    .screen {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      color: #fff; /* White text */
+      border: none; /* Remove border */
+    }
+
+    #left-screen {
+      text-align: right;
+      position: relative;
+      margin-right: 0; /* Initial center spacing */
+    }
+
+    #right-screen {
+      text-align: left;
+      position: relative;
+      margin-left: 0; /* Initial center spacing */
+    }
+
+    /* Settings panel */
+    #settings {
+      padding: 10px;
+      background: #222; /* Dark gray background */
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    label {
+      margin-right: 5px;
+    }
+
+    input[type="number"],
+    input[type="range"] {
+      width: 60px;
+      background: #444;
+      color: #fff;
+      border: 1px solid #666;
+      padding: 2px;
+    }
+
+    button {
+      padding: 5px 10px;
+      background: #444;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #666;
+    }
+
+    input[type="file"] {
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <!-- Container for two screens -->
+  <div id="container">
+    <div id="left-screen" class="screen"></div>
+    <div id="right-screen" class="screen"></div>
+  </div>
+
+  <!-- Settings panel -->
+  <div id="settings">
+    <label for="speed">Speed (ms/word):</label>
+    <input type="number" id="speed" value="300" min="50">
+    
+    <label for="font-size">Font Size:</label>
+    <input type="number" id="font-size" value="24" min="12">
+    
+    <label for="spacing">Center Spacing (px):</label>
+    <input type="range" id="spacing" value="0" min="-500" max="500">
+    
+    <button id="start">Start</button>
+    <input type="file" id="file-input" accept=".txt">
+  </div>
+
+  <script>
+    // Get control elements
+    const leftScreen = document.getElementById("left-screen");
+    const rightScreen = document.getElementById("right-screen");
+    const speedInput = document.getElementById("speed");
+    const fontSizeInput = document.getElementById("font-size");
+    const spacingInput = document.getElementById("spacing");
+    const fileInput = document.getElementById("file-input");
+    const startButton = document.getElementById("start");
+
+    let words = []; // Array of words
+    let intervalId; // Interval ID for stopping
+
+    // Function to update center spacing
+    function updateSpacing() {
+      const spacing = spacingInput.value;
+      leftScreen.style.marginRight = `${spacing}px`;
+      rightScreen.style.marginLeft = `${spacing}px`;
+    }
+
+    // Function to display words
+    function displayWords() {
+      let index = 0;
+      const speed = parseInt(speedInput.value, 10);
+      const fontSize = parseInt(fontSizeInput.value, 10);
+
+      // Set font size
+      leftScreen.style.fontSize = `${fontSize}px`;
+      rightScreen.style.fontSize = `${fontSize}px`;
+
+      intervalId = setInterval(() => {
+        if (index >= words.length) {
+          clearInterval(intervalId);
+          leftScreen.textContent = "";
+          rightScreen.textContent = "";
+          return;
+        }
+
+        // Display the same word on both screen halves
+        const word = words[index];
+        leftScreen.textContent = word;
+        rightScreen.textContent = word;
+
+        index++; // Next word
+      }, speed);
+    }
+
+    // File upload and word splitting
+    fileInput.addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          words = e.target.result.split(/\s+/); // Split text into words
+        };
+        reader.readAsText(file);
+      }
+    });
+
+    // Update center spacing
+    spacingInput.addEventListener("input", updateSpacing);
+
+    // Start the app
+    startButton.addEventListener("click", () => {
+      if (intervalId) clearInterval(intervalId);
+      if (words.length > 0) displayWords();
+    });
+
+    // Set initial center spacing
+    updateSpacing();
+  </script>
+</body>
+</html>
+
